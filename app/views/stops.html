@@ -1,0 +1,59 @@
+<div class="jumbotron">
+  <!-- <h1>'Allo, 'Allo!</h1>
+  <p class="lead">
+    <img src="images/yeoman.png" alt="I'm Yeoman"><br>
+    Always a pleasure scaffolding your apps.
+  </p> -->
+  <p><a class="btn btn-lg btn-success" ng-click="getLocations()">Get by Site!<span class="glyphicon glyphicon-ok"></span></a></p>
+  <p><a class="btn btn-lg btn-success" ng-click="loadLocations()">Load BusStop!<span class="glyphicon glyphicon-ok"></span></a></p>
+  <p><a class="btn btn-lg btn-success" ng-click="findBusStop2()">Find BusStop!<span class="glyphicon glyphicon-ok"></span></a></p>
+  <a ng-href="#/">Main</a>
+</div>
+
+<div class="row">
+    <div class="caption">
+        <h3>現在地</h3>
+        <p>{{ currentPosition.name }}</p>
+        <p>LatLong: {{ currentPosition.latitude }},{{ currentPosition.longitude }}</p>
+    </div>
+</div>
+
+<div>
+    <div class="row">
+        <div class="col-xs-3 col-sm-3 col-md-3"><B>Name:</B></div>
+        <div class="col-xs-1 col-sm-1 col-md-1"><p>StopID:</p></div>
+        <div class="col-xs-3 col-sm-3 col-md-3"><p>LatLong:</p></div>
+        <div class="col-xs-1 col-sm-1 col-md-1"><p>Span:</p></div>
+        <div class="col-xs-4 col-sm-4 col-md-4"><p>Dist:</p></div>
+    </div>
+    <div ng-repeat="row in fundBusStops">
+        <div class="row">
+            <div class="col-xs-3 col-sm-3 col-md-3"><label class=" checkbox"><input type="checkbox" value="{{row.id}}">{{ row.name }}</label></div>
+            <div class="col-xs-1 col-sm-1 col-md-1"><p>{{ row.id }}</p></div>
+            <div class="col-xs-3 col-sm-3 col-md-3"><p>{{ row.lat.toFixed(4) }},{{ row.long.toFixed(4) }}</p></div>
+            <div class="col-xs-1 col-sm-1 col-md-1"><p>{{ row.span.toFixed(4) }}</p></div>
+            <div class="col-xs-4 col-sm-4 col-md-4"><p>{{ row.dist.toFixed(4) }} / {{ row.walk.toFixed(4) }}</p></div>
+        </div>
+    </div>
+    <div ng-repeat="row in busStops">
+        <div class="row">
+            <div class="col-xs-3 col-sm-3 col-md-3"><b>{{ row.name }}</b></div>
+            <div class="col-xs-1 col-sm-1 col-md-1"><p>{{ row.id }}</p></div>
+            <div class="col-xs-3 col-sm-3 col-md-3"><p>{{ row.lat }},{{ row.long }}</p></div>
+            <div class="col-xs-1 col-sm-1 col-md-1"></div>
+            <div class="col-xs-4 col-sm-4 col-md-4"><p>{{ row.dist.toFixed(4) }} / {{ row.walk.toFixed(4) }}</p></div>
+        </div>
+    </div>
+</div>
+<!-- 
+<div class="row">
+    <div class="col-md-6" ng-repeat="row in busStops">
+        <div class="caption">
+            <h3>{{ row.name }}</h3>
+            <p>StopID: {{ row.id }}</p>
+            <p>Latitude: {{ row.lat }}</p>
+            <p>Longitude: {{ row.long }}</p>
+        </div>
+    </div>
+</div>
+-->
