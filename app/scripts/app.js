@@ -31,6 +31,11 @@ angular
         templateUrl: 'views/stops.html',
         controller: 'BusStopsCtrl'
       })
+      .when('/find', {
+        templateUrl: 'views/find.html',
+        controller: 'FindCtrl',
+        controllerAs: 'find'
+      })
       .otherwise({
         redirectTo: '/'
       });

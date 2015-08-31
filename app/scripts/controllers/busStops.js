@@ -9,7 +9,7 @@
  */
 var app = angular.module('yeomanTest4App');
 
-app.controller('BusStopsCtrl', function ($scope, $http, $window, $q) {
+app.controller('BusStopsCtrl', function ($rootScope, $scope, $http, $window, $q) {
     $scope.urlBase = 'http://www.kotsu-city-kagoshima.jp/';
     $scope.urlRosen = 'wp/timesearch/rosen_list.php?syubetuId={0}';
     $scope.urlStops = 'wp/timesearch/strEnd.php?rosen_id={0}?syubetuId={1}';
@@ -333,9 +333,9 @@ app.controller('BusStopsCtrl', function ($scope, $http, $window, $q) {
                                                                     target.walk = distance.computeLength(res.routes[0].overview_path);
                                                                     $scope.refreshData();
                                                                 }
-                                                            }
+                                                            };
 
-                                                }
+                                                };
                                                 loc.target = st;
                                                 direct.route({origin:loc, destination:dst, travelMode: 'WALKING'}, tmp());
 
@@ -385,8 +385,13 @@ app.controller('BusStopsCtrl', function ($scope, $http, $window, $q) {
 //            });
             $scope.$apply();
         }
-    };
+    };    
     
+    $scope.$on('hoge', function(event, args) {
+       var i = 0;
+       i++; 
+    });
+
     if($scope.webdb !== null) {
         var db = $scope.webdb;
         db.transaction(function(tr) {
@@ -394,4 +399,6 @@ app.controller('BusStopsCtrl', function ($scope, $http, $window, $q) {
         });
     }
     
+    console.log("loaded busstops");
+
   });
