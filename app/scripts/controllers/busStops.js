@@ -29,6 +29,11 @@ app.controller('BusStopsCtrl', function ($rootScope, $scope, $http, $window, $q)
         $scope.fundBusStops = [];
     };
     
+    $rootScope.$on('hoge', function(event, args) {
+       var i = 0;
+       i++; 
+    });
+
     $scope.getLocations = function() {
         $scope.clearData();
         $scope.webdb.transaction( function(tr){
@@ -387,11 +392,6 @@ app.controller('BusStopsCtrl', function ($rootScope, $scope, $http, $window, $q)
         }
     };    
     
-    $scope.$on('hoge', function(event, args) {
-       var i = 0;
-       i++; 
-    });
-
     if($scope.webdb !== null) {
         var db = $scope.webdb;
         db.transaction(function(tr) {
