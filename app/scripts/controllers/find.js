@@ -8,7 +8,7 @@
  * Controller of the yeomanTest4App
  */
 angular.module('yeomanTest4App')
-  .controller('FindCtrl', function ($rootScope, $scope) {
+  .controller('FindCtrl', function ($rootScope, $scope, busData) {
     this.awesomeThings = [
       'HTML5 Boilerplate',
       'AngularJS',
