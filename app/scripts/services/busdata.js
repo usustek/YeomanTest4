@@ -48,7 +48,7 @@ angular.module('yeomanTest4App')
                     }
                     //alert('Finish!');
                 },
-                function() { alert('Error.'); });
+                function() { /*alert('Error.');*/ });
     };
 
     this.getLocationsRosen = function (shubetsu) {
@@ -133,9 +133,7 @@ angular.module('yeomanTest4App')
                         }
                     });
                 }
-                catch(e){
-                    var iii = 0;
-                }
+                catch(e){}
                 deferd.resolve(this);
             },
             error: function() {
@@ -147,35 +145,40 @@ angular.module('yeomanTest4App')
     };
     
     // 非同期での検索処理
-    this.findBusStop2 = function() {
+    this.findBusStop2 = function(loaded) {
+        var self = this;
         this.findBusStop2_1()
-            .then(this.findBusStop2_2,
-                  function(){ alert('位置情報が取得できません。'); })
+            .then(function(){
+                 self.findBusStop2_2(self);
+                  },
+                  function(){
+                       alert('位置情報が取得できません。');
+                        })
             .then(function(res) {
-                    this.fundBusStops.sort(function(a,b) { return a.span - b.span; });
+                    self.fundBusStops.sort(function(a,b) { return a.span - b.span; });
                 },
                 function(res){ alert('バス停の位置情報が取得できません。'); })
-            .then(this.findBusStop2_3)
             .then(function() {
-                  this.fundBusStops.sort(function(a,b) { return a.walk - b.walk; });
-            },
-            function(){
-                var i = 0;
-            },
-            function(){
-                var i = 0;
+                 self.findBusStop2_3(self);
+                  } )
+            .then(function(res) {
+                  self.fundBusStops.sort(function(a,b) { return a.walk - b.walk; });
+                  if ( null !== loaded ){
+                      loaded();
+                  }
             });
     };
         
     //　現在位置取得
     this.findBusStop2_1 = function() {
         var deferd = $q.defer();
+        var self = this;
         this.clearData();
         
         if(navigator.geolocation){
             navigator.geolocation.getCurrentPosition(
                     function(pos){ 
-                        this.currentPosition = pos.coords;
+                        self.currentPosition = pos.coords;
                         deferd.resolve(this);
                     },
                     function(res){
@@ -192,33 +195,31 @@ angular.module('yeomanTest4App')
 
     // 現在位置からの近傍バス停取得
     // ※ついでに現在地からの直線距離を取得
-    this.findBusStop2_2 = function() {
+    this.findBusStop2_2 = function(self) {
         var deferd = $q.defer();
-    
+
         var maps = $window.google.maps;
         var distance = maps.geometry.spherical;
         var geo = new maps.Geocoder();
         //var pos = $scope.currentPosition;
-        var pos = new maps.LatLng(this.currentPosition.latitude, this.currentPosition.longitude);
+        var pos = new maps.LatLng(self.currentPosition.latitude, self.currentPosition.longitude);
     
         geo.geocode({location: pos},
                     function(ary){ 
                         try{
                             if (ary.length > 0){
-                                this.currentPosition.name = ary[0].formatted_address;
+                                self.currentPosition.name = ary[0].formatted_address;
                             }
                         }
-                        catch(e) {
-                            var iii = 0;
-                        }
+                        catch(e) {}
                     });
         this.webdb.transaction(function(tr){
             tr.executeSql('SELECT *,((latitude - ?)*(latitude - ?)) + ((longitude - ?)*(longitude - ?)) as span FROM BUSSTOPS ORDER BY span',
                         [pos.G, pos.G, pos.K, pos.K],
                         //[pos.latitude, pos.latitude, pos.longitude, pos.longitude],
                         function(tr,res){
-                            var direct = new google.maps.DirectionsService();
-                            this.fundBusStops = [];
+                            //var direct = new google.maps.DirectionsService();
+                            self.fundBusStops = [];
                             for(var i = 0; i < Math.min(10, res.rows.length); i ++){
                                 var row = res.rows.item(i);
                                 var dst = new maps.LatLng(row.latitude,row.longitude);
@@ -229,11 +230,11 @@ angular.module('yeomanTest4App')
                                             span: Math.sqrt(row.span),
                                             dist: distance.computeDistanceBetween(pos, dst),
                                             walk: 0};
-                                this.fundBusStops.push(st);
+                                self.fundBusStops.push(st);
     
                                 deferd.notify(this);
                             }
-                            this.fundBusStops.sort(function(a,b) { return a.dist - b.dist; });
+                            self.fundBusStops.sort(function(a,b) { return a.dist - b.dist; });
                             deferd.resolve(this);
                         },
                         function(tr,err){
@@ -247,17 +248,17 @@ angular.module('yeomanTest4App')
 
     
     // 現在地から各バス停への道のりを取得
-    this.findBusStop2_3 = function() {
+    this.findBusStop2_3 = function(self) {
         var deferd = $q.defer();
-
+   
         var maps = $window.google.maps;
         var distance = maps.geometry.spherical;
         var direct = new maps.DirectionsService();
-        var src = new maps.LatLng(this.currentPosition.latitude, this.currentPosition.longitude);
+        var src = new maps.LatLng(self.currentPosition.latitude, self.currentPosition.longitude);
         var defs = [];
         
-        for(var i = 0; i < this.fundBusStops.length; i ++) {
-            var stop = this.fundBusStops[i];
+        for(var i = 0; i < self.fundBusStops.length; i ++) {
+            var stop = self.fundBusStops[i];
             deferd.notify(this);
 
             var dst = new maps.LatLng(stop.lat,stop.long);
@@ -269,7 +270,7 @@ angular.module('yeomanTest4App')
                     
                     if ( (stat === maps.DirectionsStatus.OK) && (res.routes.length > 0)){
                         try{
-                            this.fundBusStops[idx].walk = distance.computeLength(res.routes[0].overview_path);
+                            self.fundBusStops[idx].walk = distance.computeLength(res.routes[0].overview_path);
                         }catch(e){
                         }
                     }
@@ -289,76 +290,6 @@ angular.module('yeomanTest4App')
                 });
         //deferd.resolve(this);
         
-        return deferd.promise;
-    };
-
-    this.findBusStop = function() {
-        var deferd = $q.defer();
-        this.clearData();
-        
-        if(navigator.geolocation){
-            navigator.geolocation.getCurrentPosition(
-                    function(pos){ 
-                        this.currentPosition = pos.coords;
-                        var maps = $window.google.maps;
-                        var distance = maps.geometry.spherical;
-                        var geo = new maps.Geocoder();
-                        var loc = new maps.LatLng(pos.coords.latitude, pos.coords.longitude);
-
-                        geo.geocode({location: loc},
-                                    function(ary){ 
-                                        if (ary.length > 0){
-                                            this.currentPosition.name = ary[0].formatted_address;
-                                        }
-                                    });
-                        this.webdb.transaction(function(tr){
-                            tr.executeSql('SELECT *,((latitude - ?)*(latitude - ?)) + ((longitude - ?)*(longitude - ?)) as span FROM BUSSTOPS ORDER BY span',
-                                         [pos.coords.latitude, pos.coords.latitude, pos.coords.longitude, pos.coords.longitude],
-                                        function(tr,res){
-                                            var direct = new google.maps.DirectionsService();
-                                            this.fundBusStops = [];
-                                            for(var i = 0; i < Math.min(25, res.rows.length); i ++){
-                                                var row = res.rows.item(i);
-                                                var dst = new maps.LatLng(row.latitude,row.longitude);
-                                                var st = {id: row.id,
-                                                            name: row.name,
-                                                            lat: row.latitude,
-                                                            long: row.longitude,
-                                                            span: Math.sqrt(row.span),
-                                                            dist: distance.computeDistanceBetween(loc, dst)};
-                                                this.fundBusStops.push(st);
-
-                                                var tmp = function(){
-                                                    var target = st;
-                                                    return function(res, stat){
-                                                                var ttt = target;
-                                                                if((res !== null) && (res.routes.length>0)){
-                                                                    target.walk = distance.computeLength(res.routes[0].overview_path);
-                                                                }
-                                                            };
-
-                                                };
-                                                loc.target = st;
-                                                direct.route({origin:loc, destination:dst, travelMode: 'WALKING'}, tmp());
-
-                                                deferd.notify(this);
-                                            }
-                                            this.fundBusStops.sort(function(a,b) { return a.dist - b.dist; });
-                                            deferd.resolve(this);
-                                        });
-                        });
-                       
-                    },
-                    function(){
-                        deferd.reject(this);
-                    },
-                    {enableHighAccuracy: true, timeout: 15000});
-        }
-        else {
-            deferd.reject(this);
-            alert('位置情報が取得できません。');
-        }
-
         return deferd.promise;
     };
     

@@ -25,15 +25,10 @@ app.controller('BusStopsCtrl', function($scope, $window, $timeout, busData) {
     };
     
     // 非同期での検索処理
-    $scope.findBusStop2 = function() {
-        busData.findBusStop2();
-    };
-    
-
     $scope.findBusStop = function() {
-        busData.findBusStop();
+        busData.findBusStop2(function(){$scope.refreshData();});
     };
-    
+
     $scope.loadLocations = function() {
         busData.loadLocations(function(){$scope.refreshData();});
     };
