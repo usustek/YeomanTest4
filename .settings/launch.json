@@ -9,12 +9,13 @@
 			// Type of configuration. Possible values: "node", "mono".
 			"type": "node",
 			// Workspace relative or absolute path to the program.
-			"program": "/usr/local/bin/grunt",
-			//"program": "app/scripts/app.js",
+			//"program": "/usr/local/bin/grunt",
+			"program": "app/scripts/app.js",
 			// Automatically stop program after launch.
-			"stopOnEntry": false,
+			"stopOnEntry": true,
 			// Command line arguments passed to the program.
-			"args": [ "--gruntfile","Gruntfile.vs_debug.js","start" ],
+			//"args": [ "--gruntfile","Gruntfile.vs_debug.js","start" ],
+			"args": [],
 			// Workspace relative or absolute path to the working directory of the program being debugged. Default is the current workspace.
 			"cwd": ".",
 			// Workspace relative or absolute path to the runtime executable to be used. Default is the runtime executable on the PATH.

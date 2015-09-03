@@ -13,6 +13,17 @@ angular.module('yeomanTest4App')
     this.urlRosen = 'wp/timesearch/rosen_list.php?syubetuId={0}';
     this.urlStops = 'wp/timesearch/strEnd.php?rosen_id={0}?syubetuId={1}';
     this.urlTimes = 'wp/timesearch/time_table.php?rosenId={0}&name={1}';
+    this.urlSearch = 'wp/timesearch/search_index.php';
+    this.urlResult = 'wp/timesearch/search_result.php';
+    /* need FormData
+        str:出発バス停
+        end:到着バス停
+        daiya_kubun:0 平日, 1 土曜, 2 日祝
+        hour:16
+        minute:40
+        option: 1 発車時刻, 2 到着時刻, 3 始発, 4 最終,
+        norikae: 1  */
+    
     this.webdb = $window.openDatabase('mydb', '', 'My BusStops Database', 1024 * 1024 * 2);
     
     this.currentPosition = null;
@@ -199,21 +210,43 @@ angular.module('yeomanTest4App')
         var deferd = $q.defer();
 
         var maps = $window.google.maps;
-        var distance = maps.geometry.spherical;
-        var geo = new maps.Geocoder();
+
         //var pos = $scope.currentPosition;
         var pos = new maps.LatLng(self.currentPosition.latitude, self.currentPosition.longitude);
     
+        $q.all([this.findBusStop2_2a(self, pos),
+                this.findBusStop2_2b(self, pos)])
+           .then(function() { deferd.resolve(this); },
+                 function() { deferd.reject(this); });
+        
+        return deferd.promise;
+    };
+
+    this.findBusStop2_2a = function(self, pos) {
+        var maps = $window.google.maps;
+        var geo = new maps.Geocoder();
+        var def = $q.defer();
         geo.geocode({location: pos},
-                    function(ary){ 
-                        try{
-                            if (ary.length > 0){
-                                self.currentPosition.name = ary[0].formatted_address;
-                            }
+                function(ary){ 
+                    try{
+                        if (ary.length > 0){
+                            self.currentPosition.name = ary[0].formatted_address;
                         }
-                        catch(e) {}
-                    });
-        this.webdb.transaction(function(tr){
+                        def.resolve(this);
+                    }
+                    catch(e) {
+                        def.reject(this);
+                    }
+                });
+        return def.promise;
+    };
+    
+    this.findBusStop2_2b = function(self, pos) {
+        var def = $q.defer();
+        var maps = $window.google.maps;
+        var distance = maps.geometry.spherical;
+
+        self.webdb.transaction(function(tr){
             tr.executeSql('SELECT *,((latitude - ?)*(latitude - ?)) + ((longitude - ?)*(longitude - ?)) as span FROM BUSSTOPS ORDER BY span',
                         [pos.G, pos.G, pos.K, pos.K],
                         //[pos.latitude, pos.latitude, pos.longitude, pos.longitude],
@@ -231,21 +264,17 @@ angular.module('yeomanTest4App')
                                             dist: distance.computeDistanceBetween(pos, dst),
                                             walk: 0};
                                 self.fundBusStops.push(st);
-    
-                                deferd.notify(this);
                             }
                             self.fundBusStops.sort(function(a,b) { return a.dist - b.dist; });
-                            deferd.resolve(this);
+                            def.resolve(this);
                         },
                         function(tr,err){
-                            deferd.reject(this);
-                        }
-            );
+                            def.reject(this);
+                        });
         });
-    
-        return deferd.promise;
+        
+        return def.promise;
     };
-
     
     // 現在地から各バス停への道のりを取得
     this.findBusStop2_3 = function(self) {
@@ -319,6 +348,53 @@ angular.module('yeomanTest4App')
         }
     };
 
+    this.search = function(stName, edName, loaded) {
+        var uri = this.urlBase + this.urlResult;
+        var win = $window.open(uri, 'Search');
+        
+        // var st = win.Document.body.getElementById("str");
+        // st.value = stName;
+        win.setTimeout(function() {
+            // win.addEventListener('load', function() {
+            //     var st = window.document.getElementById("str");
+            //     st.value = stName;
+            // }, false);
+            win.onload = function() {
+                var st = window.document.getElementById("str");
+                st.value = stName;
+            };
+        }, 0);
+        
+        var i = 0;
+    };
+    
+    this.search2 = function(stName, edName, loaded) {
+        var self = this;
+        var deferd = $q.defer();
+        var uri = this.urlBase + this.urlResult;
+        
+        $window.jQuery.ajax({
+            url: uri,
+            type: 'POST',
+            data: {
+                 str: stName, 
+                 end: edName,
+                 daiya_kubun: 0,
+                 hour: 16,
+                 minute: 40,
+                 option: 1
+            },
+            success: function(res){
+                var dom = $window.jQuery.parseHTML(res.responseText);
+                var wrap = null;
+                deferd.resolve(this);
+            },
+            error: function(xreq, stat, err) {
+                deferd.reject(this);
+            }
+        });
+    }
+    
     if(this.webdb !== null) {
         var db = this.webdb;
         db.transaction(function(tr) {
